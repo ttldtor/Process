@@ -1,5 +1,6 @@
 # Copyright (c) 2023 ttldtor.
 # SPDX-License-Identifier: BSL-1.0
+
 BasedOnStyle: LLVM
 ColumnLimit: 120
 ContinuationIndentWidth: 4

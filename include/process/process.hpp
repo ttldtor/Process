@@ -1,3 +1,6 @@
+// Copyright (c) 2023 ttldtor.
+// SPDX-License-Identifier: BSL-1.0
+
 #pragma once
 
 #ifdef _WINNT_
@@ -34,8 +37,66 @@
 namespace ttldtor::process {
 struct TTLDTOR_PROCESS_EXPORT Process {
 
+    /**
+     * Returns the kernel (privileged) CPU time for the current process in ms.
+     *
+     * @return The kernel (privileged) CPU time for the current process in ms.
+     */
     static std::chrono::milliseconds getKernelProcessorTime() noexcept;
+
+    /**
+     * Returns the kernel (privileged) CPU time for the current process in ms.
+     *
+     * @return The kernel (privileged) CPU time for the current process in ms.
+     */
+    static std::chrono::milliseconds PrivilegedProcessorTime() noexcept {
+        return getKernelProcessorTime();
+    }
+
+    /**
+     * Returns the user CPU time for the current process in ms.
+     *
+     * @return The user CPU time for the current process in ms.
+     */
     static std::chrono::milliseconds getUserProcessorTime() noexcept;
+
+    /**
+     * Returns the total (kernel + user) CPU time for the current process in ms.
+     *
+     * @return The total (kernel + user) CPU time for the current process in ms.
+     */
     static std::chrono::milliseconds getTotalProcessorTime() noexcept;
+
+    /**
+     * Returns the size of physical memory equipped by the current process.
+     *
+     * @return The size of physical memory equipped by the current process.
+     */
+    static std::uint64_t getWorkingSetSize() noexcept;
+
+    /**
+     * Returns the size of physical memory equipped by the current process.
+     *
+     * @return The size of physical memory equipped by the current process.
+     */
+    static std::uint64_t getPhysicalMemorySize() noexcept {
+        return getWorkingSetSize();
+    }
+
+    /**
+     * Returns the size of private (virtual) memory equipped by the current process.
+     *
+     * @return The size of private (virtual) memory equipped by the current process.
+     */
+    static std::uint64_t getPrivateMemorySize() noexcept;
+
+    /**
+     * Returns the size of private (virtual) memory equipped by the current process.
+     *
+     * @return The size of private (virtual) memory equipped by the current process.
+     */
+    static std::uint64_t getVirtualMemorySize() noexcept {
+        return getPrivateMemorySize();
+    }
 };
 } // namespace ttldtor::process
