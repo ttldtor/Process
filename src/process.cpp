@@ -275,6 +275,8 @@ struct ProcPidRUsageResult {
             mach_timebase_info(&time_base);
         }
 
+        std::cout << "Time Base: " << time_base.numer << " / " << time_base.denom << std::endl;
+
         sysTime = std::chrono::milliseconds(
             ((static_cast<std::uint64_t>(rusage_info_data.ri_system_time) * time_base.numer) / time_base.denom) /
             ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
