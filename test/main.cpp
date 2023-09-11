@@ -13,6 +13,7 @@ int main() {
         return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
     };
+    std::cout << std::string(79, '=') << std::endl;
     std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
     std::cout << "Total CPU time: " << Process::getTotalProcessorTime().count() << "ms" << std::endl;
 
