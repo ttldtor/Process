@@ -48,7 +48,12 @@ jobs:
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-      - name: Test
+      - name: Test (!Win)
+        if: ${{ !contains(matrix.os, 'windows') }}
         working-directory: ${{github.workspace}}/build
         run: ./process_test
 
+      - name: Test (Win)
+        if: ${{ contains(matrix.os, 'windows') }}
+        working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+        run: ./process_test
