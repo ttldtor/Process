@@ -262,7 +262,7 @@ namespace ttldtor {
 namespace process {
 
 struct ProcPidRUsageResult {
-    std::chrono::milliseconds sysTime{};
+    static const std::uint64_t NSEC_TO_MSEC_RATIO = 1000000ULL std::chrono::milliseconds sysTime{};
     std::chrono::milliseconds userTime{};
     std::chrono::milliseconds totalTime{};
 
@@ -275,10 +275,10 @@ struct ProcPidRUsageResult {
 
         sysTime = std::chrono::milliseconds(
             ((static_cast<std::uint64_t>(rusage_info_data.ri_system_time) * time_base.numer) / time_base.denom) /
-            NSEC_TO_MSEC_RATIO);
+            ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
         userTime = std::chrono::milliseconds(
             ((static_cast<std::uint64_t>(rusage_info_data.ri_user_time) * time_base.numer) / time_base.denom) /
-            NSEC_TO_MSEC_RATIO);
+            ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
         totalTime = sysTime + userTime;
     }
 };
