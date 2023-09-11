@@ -27,7 +27,12 @@ int main() {
     std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
 
     {
-        std::vector<std::uint8_t> vb(10 * 1024 * 1024);
+        std::vector<std::uint8_t> vb(10 * 1024 * 1024, 0);
+
+        for (std::size_t i = 0; i < vb.size(); i++) {
+            vb[i]++;
+        }
+
         std::cout << "Physical memory usage (+10MB vector<byte>): " << Process::getPhysicalMemorySize() / 1024 << "KB"
                   << std::endl;
     }
