@@ -1,6 +1,7 @@
 # Process
 Cross-platform library for obtaining metrics of the current process
 
+[![Build](https://github.com/ttldtor/Process/actions/workflows/build.yml/badge.svg?branch=default)](https://github.com/ttldtor/Process/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/ttldtor/Process)](https://github.com/ttldtor/Process/releases/latest)
 ![](https://img.shields.io/badge/C++%20standard-C++14-blueviolet)
 [![License](https://img.shields.io/badge/license-BSL--1.0-orange)](https://github.com/ttldtor/Process/blob/default/LICENSE)
