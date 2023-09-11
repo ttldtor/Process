@@ -314,7 +314,7 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 
     auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
 
-    return static_cast<std::uint64_t>(info.resident_size)
+    return static_cast<std::uint64_t>(info.resident_size);
 
     //    proc_taskallinfo info{};
     //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
@@ -328,7 +328,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
 
-    return static_cast<std::uint64_t>(info.virtual_size)
+    return static_cast<std::uint64_t>(info.virtual_size);
     //    proc_taskallinfo info{};
     //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
     //
