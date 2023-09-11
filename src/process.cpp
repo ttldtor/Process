@@ -244,26 +244,82 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 } // namespace process
 } // namespace ttldtor
 #elif defined(__APPLE__) && defined(__MACH__)
+#    include <unistd.h>
+#    if __has_include(<libproc.h>)
+#        include <libproc.h>
+#    else
+#        include <Availability.h>
+#        include <sys/resource.h>
+// Some SDKs are missing the libproc.h header
+int proc_pid_rusage(int pid, int flavor, rusage_info_t *buffer) __OSX_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0);
+#    endif
+#    include <mach-o/dyld_images.h>
+#    include <mach/mach.h>
+#    include <mach/mach_time.h>
+#    include <sys/sysctl.h>
+
 namespace ttldtor {
 namespace process {
+
+struct ProcPidRUsageResult {
+    static const std::uint64_t NSEC_TO_MSEC_RATIO = 1000000ULL;
+
+    std::chrono::milliseconds sysTime{};
+    std::chrono::milliseconds userTime{};
+    std::chrono::milliseconds totalTime{};
+
+    explicit ProcPidRUsageResult(const rusage_info_v2 &rusage_info_data) {
+        // Initialize time conversions.
+        static mach_timebase_info_data_t time_base;
+        if (time_base.denom == 0) {
+            mach_timebase_info(&time_base);
+        }
+
+        // std::cout << "Time Base: " << time_base.numer << " / " << time_base.denom << std::endl;
+
+        sysTime = std::chrono::milliseconds(
+            ((static_cast<std::uint64_t>(rusage_info_data.ri_system_time) * time_base.numer) / time_base.denom) /
+            ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
+        userTime = std::chrono::milliseconds(
+            ((static_cast<std::uint64_t>(rusage_info_data.ri_user_time) * time_base.numer) / time_base.denom) /
+            ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
+        totalTime = sysTime + userTime;
+    }
+};
+
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
-    return std::chrono::milliseconds(0);
+    rusage_info_v2 rusage_info_data{};
+    auto status = proc_pid_rusage(getpid(), RUSAGE_INFO_V2, bit_cast<rusage_info_t *>(&rusage_info_data));
+
+    return ProcPidRUsageResult{rusage_info_data}.sysTime;
 }
 
 std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
-    return std::chrono::milliseconds(0);
+    rusage_info_v2 rusage_info_data{};
+    auto status = proc_pid_rusage(getpid(), RUSAGE_INFO_V2, bit_cast<rusage_info_t *>(&rusage_info_data));
+
+    return ProcPidRUsageResult{rusage_info_data}.userTime;
 }
 
 std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
-    return std::chrono::milliseconds(0);
+    rusage_info_v2 rusage_info_data{};
+    auto status = proc_pid_rusage(getpid(), RUSAGE_INFO_V2, bit_cast<rusage_info_t *>(&rusage_info_data));
+
+    return ProcPidRUsageResult{rusage_info_data}.totalTime;
 }
 
 std::uint64_t Process::getWorkingSetSize() noexcept {
-    return 0ULL;
+    proc_taskallinfo info{};
+    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+
+    return static_cast<std::uint64_t>(info.ptinfo.pti_resident_size);
 }
 
 std::uint64_t Process::getPrivateMemorySize() noexcept {
-    return 0ULL;
+    proc_taskallinfo info{};
+    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+
+    return static_cast<std::uint64_t>(info.ptinfo.pti_virtual_size);
 }
 } // namespace process
 } // namespace ttldtor
