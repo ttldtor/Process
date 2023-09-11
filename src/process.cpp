@@ -157,10 +157,10 @@ struct RUsageResult {
     std::chrono::milliseconds totalTime{};
 
     explicit RUsageResult(const rusage &ru)
-        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000000ULL +
-                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec)},
-          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000000ULL +
-                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec)},
+        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
+                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
+          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
+                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
           totalTime{sysTime + userTime} {
     }
 };
