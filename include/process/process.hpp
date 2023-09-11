@@ -34,7 +34,8 @@
 #include <chrono>
 #include <cstdint>
 
-namespace ttldtor::process {
+namespace ttldtor {
+namespace process {
 struct TTLDTOR_PROCESS_EXPORT Process {
 
     /**
@@ -108,4 +109,6 @@ struct TTLDTOR_PROCESS_EXPORT Process {
         return getPrivateMemorySize();
     }
 };
-} // namespace ttldtor::process
+
+} // namespace process
+} // namespace ttldtor

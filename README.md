@@ -13,11 +13,11 @@ Status:
 
 CMakeLists.txt:
 ```cmake
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.20)
 
 project(Test LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 set(CXX_EXTENSIONS OFF)
 set(C_EXTENSIONS OFF)
@@ -40,7 +40,6 @@ main.cpp
 
 #include <chrono>
 #include <iostream>
-#include <thread>
 #include <vector>
 
 using namespace std::literals;
@@ -48,7 +47,8 @@ using namespace ttldtor::process;
 
 int main() {
     auto now = [] {
-        return duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count();
     };
     std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
     std::cout << "Total CPU time: " << Process::getTotalProcessorTime().count() << "ms" << std::endl;
@@ -60,21 +60,21 @@ int main() {
         (void)(i++);
     }
 
-    std::cout << "Total CPU time: " << Process::getTotalProcessorTime().count() << "ms" << std::endl;
+    std::cout << "Total CPU time (+5s): " << Process::getTotalProcessorTime().count() << "ms" << std::endl;
     std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
-    std::vector<std::byte> vb(10 * 1024 * 1024);
-    std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
+    std::vector<std::uint8_t> vb(10 * 1024 * 1024);
+    std::cout << "Physical memory usage (+10MB): " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
     vb.resize(1);
     vb.shrink_to_fit();
-    std::cout << "Physical memory usage: " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
+    std::cout << "Physical memory usage (-10MB): " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
 }
 ```
 
 ```text
-Physical memory usage: 3676KB
-Total CPU time: 15ms
-Total CPU time: 5687ms
-Physical memory usage: 3720KB
-Physical memory usage: 13964KB
-Physical memory usage: 3720KB
+Physical memory usage: 4168KB
+Total CPU time: 0ms
+Total CPU time (+5s): 5609ms
+Physical memory usage: 4212KB
+Physical memory usage (+10MB): 14460KB
+Physical memory usage (-10MB): 4216KB
 ```

@@ -11,7 +11,8 @@
 #include <string>
 #include <type_traits>
 
-namespace ttldtor::process {
+namespace ttldtor {
+namespace process {
 
 template <typename... T> constexpr void ignore_unused(const T &...) {
 }
@@ -42,7 +43,8 @@ constexpr To bit_cast(const From &from)
     return to;
 }
 
-} // namespace ttldtor::process
+} // namespace process
+} // namespace ttldtor
 
 #ifdef WIN32
 
@@ -50,7 +52,8 @@ constexpr To bit_cast(const From &from)
 #    include <processthreadsapi.h>
 #    include <psapi.h>
 
-namespace ttldtor::process {
+namespace ttldtor {
+namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     FILETIME creationTime{};
     FILETIME exitTime{};
@@ -119,10 +122,14 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return static_cast<std::uint64_t>(processMemoryCountersEx.PrivateUsage);
 }
-} // namespace ttldtor::process
+} // namespace process
+} // namespace ttldtor
 #elif defined(__linux__)
 
 #    include <sys/resource.h>
+
+namespace ttldtor {
+namespace process {
 
 struct Parser {
     enum ParseResultType { KEY_NOT_FOUND, VALUE_NOT_FOUND, OK };
@@ -133,9 +140,12 @@ struct Parser {
     };
 
     static ParseStatusResult parseStatus(const std::string &s, const std::string &key) noexcept {
-        if (auto foundKeyPos = s.find(key); foundKeyPos != std::string::npos) {
-            if (auto foundValuePos = s.find_first_of("0123456789", foundKeyPos + 6);
-                foundValuePos != std::string::npos) {
+        auto foundKeyPos = s.find(key);
+
+        if (foundKeyPos != std::string::npos) {
+            auto foundValuePos = s.find_first_of("0123456789", foundKeyPos + 6);
+
+            if (foundValuePos != std::string::npos) {
                 try {
                     return {OK, static_cast<std::uint64_t>(std::stoll(s.substr(foundValuePos)))};
                 } catch (...) {
@@ -150,7 +160,6 @@ struct Parser {
     }
 };
 
-namespace ttldtor::process {
 struct RUsageResult {
     std::chrono::milliseconds sysTime{};
     std::chrono::milliseconds userTime{};
@@ -232,9 +241,11 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return 0LL;
 }
-} // namespace ttldtor::process
+} // namespace process
+} // namespace ttldtor
 #elif defined(__APPLE__) && defined(__MACH__)
-namespace ttldtor::process {
+namespace ttldtor {
+namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     return std::chrono::milliseconds(0);
 }
@@ -254,9 +265,11 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     return 0ULL;
 }
-} // namespace ttldtor::process
+} // namespace process
+} // namespace ttldtor
 #else
-namespace ttldtor::process {
+namespace ttldtor {
+namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     return std::chrono::milliseconds(0);
 }
@@ -276,5 +289,7 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     return 0ULL;
 }
-} // namespace ttldtor::process
+}
+}
+}
 #endif
