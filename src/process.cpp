@@ -5,8 +5,11 @@
 
 #include <chrono>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <type_traits>
+#include <atomic>
 
 namespace ttldtor::process {
 
@@ -41,7 +44,7 @@ constexpr To bit_cast(const From &from)
 
 } // namespace ttldtor::process
 
-#if WIN32
+#ifdef WIN32
 
 #    include <Windows.h>
 #    include <processthreadsapi.h>
@@ -117,5 +120,162 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
     return static_cast<std::uint64_t>(processMemoryCountersEx.PrivateUsage);
 }
 } // namespace ttldtor::process
+#elif defined(__linux__)
+int parseLine(char *line) {
+    // This assumes that a digit will be found and the line ends in " Kb".
+    int i = strlen(line);
+    const char *p = line;
+    while (*p < '0' || *p > '9')
+        p++;
+    line[i - 3] = '\0';
+    i = atoi(p);
+    return i;
+}
 
+struct Parser {
+    enum ParseResultType { KEY_NOT_FOUND, VALUE_NOT_FOUND, OK };
+
+    struct ParseResult {
+        ParseResultType resultType;
+        std::uint64_t value;
+    };
+
+    static ParseResult parse(const std::string &s, const std::string &key) noexcept {
+        if (auto foundKeyPos = s.find(key); foundKeyPos != std::string::npos) {
+            if (auto foundValuePos = s.find_first_of("0123456789", foundKeyPos + 6);
+                foundValuePos != std::string::npos) {
+                try {
+                    return {OK, static_cast<std::uint64_t>(std::stoll(s.substr(foundValuePos)))};
+                } catch (...) {
+                    return {OK, 0};
+                }
+            } else {
+                return {VALUE_NOT_FOUND, 0};
+            }
+        } else {
+            return {KEY_NOT_FOUND, 0};
+        }
+    }
+};
+
+
+
+static unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+
+void init() {
+    FILE *file = fopen("/proc/stat", "r");
+    fscanf(file, "cpu %llu %llu %llu %llu", &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle);
+    fclose(file);
+}
+
+namespace ttldtor::process {
+/*TODO: implement
+ * https://github.com/dotnet/runtime/blob/de0ab156194eb64deae0e1018db9a58f7b02f4a3/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L817
+ * https://github.com/dotnet/runtime/blob/de0ab156194eb64deae0e1018db9a58f7b02f4a3/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Linux.cs#L130
+ */
+
+std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
+    init();
+
+    // std::cout << (lastTotalUser + lastTotalSys) << std::endl;
+
+    return std::chrono::milliseconds((lastTotalUser + lastTotalSys) * 10);
+}
+
+std::uint64_t Process::getWorkingSetSize() noexcept {
+    std::ifstream is("/proc/self/status");
+
+    if (is.fail()) {
+        return 0ULL;
+    }
+
+    std::string s{};
+
+    while (!std::getline(is, s).fail()) {
+        auto result = Parser::parse(s, "VmRSS:");
+
+        if (result.resultType == Parser::KEY_NOT_FOUND) {
+            continue;
+        } else {
+            return result.value * 1024;
+        }
+    }
+
+    return 0LL;
+}
+
+std::uint64_t Process::getPrivateMemorySize() noexcept {
+    std::ifstream is("/proc/self/status");
+
+    if (is.fail()) {
+        return 0ULL;
+    }
+
+    std::string s{};
+
+    while (!std::getline(is, s).fail()) {
+        auto result = Parser::parse(s, "VmSize:");
+
+        if (result.resultType == Parser::KEY_NOT_FOUND) {
+            continue;
+        } else {
+            return result.value * 1024;
+        }
+    }
+
+    return 0LL;
+}
+} // namespace ttldtor::process
+#elif defined(__APPLE__) && defined(__MACH__)
+namespace ttldtor::process {
+std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::uint64_t Process::getWorkingSetSize() noexcept {
+    return 0ULL;
+}
+
+std::uint64_t Process::getPrivateMemorySize() noexcept {
+    return 0ULL;
+}
+} // namespace ttldtor::process
+#else
+namespace ttldtor::process {
+std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
+    return std::chrono::milliseconds(0);
+}
+
+std::uint64_t Process::getWorkingSetSize() noexcept {
+    return 0ULL;
+}
+
+std::uint64_t Process::getPrivateMemorySize() noexcept {
+    return 0ULL;
+}
+} // namespace ttldtor::process
 #endif
