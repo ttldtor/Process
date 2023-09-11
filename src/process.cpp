@@ -309,17 +309,30 @@ std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
 }
 
 std::uint64_t Process::getWorkingSetSize() noexcept {
-    proc_taskallinfo info{};
-    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+    mach_task_basic_info info{};
+    mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
 
-    return static_cast<std::uint64_t>(info.ptinfo.pti_resident_size);
+    auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
+
+    return static_cast<std::uint64_t>(info.resident_size)
+
+    //    proc_taskallinfo info{};
+    //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+    //
+    //    return static_cast<std::uint64_t>(info.ptinfo.pti_resident_size);
 }
 
 std::uint64_t Process::getPrivateMemorySize() noexcept {
-    proc_taskallinfo info{};
-    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+    mach_task_basic_info info{};
+    mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
 
-    return static_cast<std::uint64_t>(info.ptinfo.pti_virtual_size);
+    auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
+
+    return static_cast<std::uint64_t>(info.virtual_size)
+    //    proc_taskallinfo info{};
+    //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
+    //
+    //    return static_cast<std::uint64_t>(info.ptinfo.pti_virtual_size);
 }
 } // namespace process
 } // namespace ttldtor
