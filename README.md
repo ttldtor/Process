@@ -1,7 +1,12 @@
 # Process
 Cross-platform library for obtaining metrics of the current process
 
-Status:
+[![Release](https://img.shields.io/github/v/release/ttldtor/Process)](https://github.com/ttldtor/Process/releases/latest)
+![](https://img.shields.io/badge/C++%20standard-C++14-blueviolet)
+[![License](https://img.shields.io/badge/license-BSL--1.0-orange)](https://github.com/ttldtor/Process/blob/default/LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/ttldtor/Process/total)](https://github.com/ttldtor/Process/releases/latest)
+
+### Status:
 * [x] Windows
 * [x] Linux
 * [ ] MacOS
@@ -11,7 +16,7 @@ Status:
 
 ### Example:
 
-CMakeLists.txt:
+_**CMakeLists.txt:**_
 ```cmake
 cmake_minimum_required(VERSION 3.20)
 
@@ -34,7 +39,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE process::process)
 
 ```
 
-main.cpp
+**_main.cpp:_**
 ```cpp
 #include <process/process.hpp>
 
@@ -70,6 +75,7 @@ int main() {
 }
 ```
 
+_**Program output:**_
 ```text
 Physical memory usage: 4168KB
 Total CPU time: 0ms
