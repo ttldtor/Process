@@ -3,13 +3,13 @@
 
 #include <process/process.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <type_traits>
-#include <atomic>
 
 namespace ttldtor::process {
 
@@ -121,26 +121,18 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace ttldtor::process
 #elif defined(__linux__)
-int parseLine(char *line) {
-    // This assumes that a digit will be found and the line ends in " Kb".
-    int i = strlen(line);
-    const char *p = line;
-    while (*p < '0' || *p > '9')
-        p++;
-    line[i - 3] = '\0';
-    i = atoi(p);
-    return i;
-}
+
+#    include <sys/resource.h>
 
 struct Parser {
     enum ParseResultType { KEY_NOT_FOUND, VALUE_NOT_FOUND, OK };
 
-    struct ParseResult {
+    struct ParseStatusResult {
         ParseResultType resultType;
         std::uint64_t value;
     };
 
-    static ParseResult parse(const std::string &s, const std::string &key) noexcept {
+    static ParseStatusResult parseStatus(const std::string &s, const std::string &key) noexcept {
         if (auto foundKeyPos = s.find(key); foundKeyPos != std::string::npos) {
             if (auto foundValuePos = s.find_first_of("0123456789", foundKeyPos + 6);
                 foundValuePos != std::string::npos) {
@@ -158,36 +150,43 @@ struct Parser {
     }
 };
 
-
-
-static unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
-
-void init() {
-    FILE *file = fopen("/proc/stat", "r");
-    fscanf(file, "cpu %llu %llu %llu %llu", &lastTotalUser, &lastTotalUserLow, &lastTotalSys, &lastTotalIdle);
-    fclose(file);
-}
-
 namespace ttldtor::process {
-/*TODO: implement
- * https://github.com/dotnet/runtime/blob/de0ab156194eb64deae0e1018db9a58f7b02f4a3/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Unix.cs#L817
- * https://github.com/dotnet/runtime/blob/de0ab156194eb64deae0e1018db9a58f7b02f4a3/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/Process.Linux.cs#L130
- */
+struct RUsageResult {
+    std::chrono::milliseconds sysTime{};
+    std::chrono::milliseconds userTime{};
+    std::chrono::milliseconds totalTime{};
+
+    explicit RUsageResult(const rusage &ru)
+        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000000ULL +
+                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec)},
+          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000000ULL +
+                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec)},
+          totalTime{sysTime + userTime} {
+    }
+};
 
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
-    return std::chrono::milliseconds(0);
+    rusage ru{};
+
+    getrusage(RUSAGE_SELF, &ru);
+
+    return RUsageResult{ru}.sysTime;
 }
 
 std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
-    return std::chrono::milliseconds(0);
+    rusage ru{};
+
+    getrusage(RUSAGE_SELF, &ru);
+
+    return RUsageResult{ru}.userTime;
 }
 
 std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
-    init();
+    rusage ru{};
 
-    // std::cout << (lastTotalUser + lastTotalSys) << std::endl;
+    getrusage(RUSAGE_SELF, &ru);
 
-    return std::chrono::milliseconds((lastTotalUser + lastTotalSys) * 10);
+    return RUsageResult{ru}.totalTime;
 }
 
 std::uint64_t Process::getWorkingSetSize() noexcept {
@@ -200,7 +199,7 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
     std::string s{};
 
     while (!std::getline(is, s).fail()) {
-        auto result = Parser::parse(s, "VmRSS:");
+        auto result = Parser::parseStatus(s, "VmRSS:");
 
         if (result.resultType == Parser::KEY_NOT_FOUND) {
             continue;
@@ -222,7 +221,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
     std::string s{};
 
     while (!std::getline(is, s).fail()) {
-        auto result = Parser::parse(s, "VmSize:");
+        auto result = Parser::parseStatus(s, "VmSize:");
 
         if (result.resultType == Parser::KEY_NOT_FOUND) {
             continue;

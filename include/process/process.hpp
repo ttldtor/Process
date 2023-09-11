@@ -38,18 +38,27 @@ namespace ttldtor::process {
 struct TTLDTOR_PROCESS_EXPORT Process {
 
     /**
-     * Returns the kernel (privileged) CPU time for the current process in ms.
+     * Returns the kernel (privileged, system) CPU time for the current process in ms.
      *
-     * @return The kernel (privileged) CPU time for the current process in ms.
+     * @return The kernel (privileged, system) CPU time for the current process in ms.
      */
     static std::chrono::milliseconds getKernelProcessorTime() noexcept;
 
     /**
-     * Returns the kernel (privileged) CPU time for the current process in ms.
+     * Returns the kernel (privileged, system) CPU time for the current process in ms.
      *
-     * @return The kernel (privileged) CPU time for the current process in ms.
+     * @return The kernel (privileged, system) CPU time for the current process in ms.
      */
-    static std::chrono::milliseconds PrivilegedProcessorTime() noexcept {
+    static std::chrono::milliseconds getPrivilegedProcessorTime() noexcept {
+        return getKernelProcessorTime();
+    }
+
+    /**
+     * Returns the kernel (privileged, system) CPU time for the current process in ms.
+     *
+     * @return The kernel (privileged, system) CPU time for the current process in ms.
+     */
+    static std::chrono::milliseconds getSystemProcessorTime() noexcept {
         return getKernelProcessorTime();
     }
 
