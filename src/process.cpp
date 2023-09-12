@@ -339,6 +339,30 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+#elif defined(__FreeBSD__)
+namespace ttldtor {
+namespace process {
+std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
+    return std::chrono::milliseconds(1);
+}
+
+std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
+    return std::chrono::milliseconds(1);
+}
+
+std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
+    return std::chrono::milliseconds(1);
+}
+
+std::uint64_t Process::getWorkingSetSize() noexcept {
+    return 1ULL;
+}
+
+std::uint64_t Process::getPrivateMemorySize() noexcept {
+    return 1ULL;
+}
+} // namespace process
+} // namespace ttldtor
 #else
 namespace ttldtor {
 namespace process {
@@ -361,6 +385,6 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     return 0ULL;
 }
-}
-}
+} // namespace process
+} // namespace ttldtor
 #endif
