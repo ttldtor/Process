@@ -341,22 +341,77 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 } // namespace ttldtor
 #elif defined(__FreeBSD__)
 
-#    include <libutil.h>
+// #    include <libprocstat.h>
+// #    include <libutil.h>
+#    include <sys/param.h>
+#    include <sys/sysctl.h>
 #    include <sys/types.h>
 #    include <sys/user.h>
 
 namespace ttldtor {
 namespace process {
+
+struct RUsageResult {
+    std::chrono::milliseconds sysTime{};
+    std::chrono::milliseconds userTime{};
+    std::chrono::milliseconds totalTime{};
+
+    explicit RUsageResult(const rusage &ru)
+        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
+                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
+          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
+                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
+          totalTime{sysTime + userTime} {
+    }
+};
+
+bool getProcInfo(int pid, kinfo_proc& info) noexcept {
+    const std::size_t MIB_SIZE = 6;
+    // MIB - Management Information Base
+    int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid(), static_cast<int>(sizeof(kinfo_proc)), 0};
+    std::size_t length;
+
+    if (sysctl(mib, MIB_SIZE, NULL, &length, NULL, 0) < 0) {
+        return false;
+    }
+
+    mib[5] = static_cast<int>(length / sizeof(kinfo_proc));
+
+    if (sysctl(mib, MIB_SIZE, &info, &length, NULL, 0) < 0) {
+        return false;
+    }
+
+    return true;
+}
+
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
-    return std::chrono::milliseconds(1);
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info->ki_rusage}.sysTime;
+    }
+
+    return std::chrono::milliseconds(0);
 }
 
 std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
-    return std::chrono::milliseconds(1);
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info->ki_rusage}.userTime;
+    }
+
+    return std::chrono::milliseconds(0);
 }
 
 std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
-    return std::chrono::milliseconds(1);
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info->ki_rusage}.totalTime;
+    }
+
+    return std::chrono::milliseconds(0);
 }
 
 std::uint64_t Process::getWorkingSetSize() noexcept {
