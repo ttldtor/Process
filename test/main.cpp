@@ -41,22 +41,22 @@ int main() {
     std::cout << "Physical memory usage (-10MB vector<byte>): " << Process::getPhysicalMemorySize() / 1024 << "KB"
               << std::endl;
 
-    {
-        const std::size_t size = 5 * 1024 * 1024;
+    for (auto n = 0; n < 5; n++) {
+        const std::size_t size = 5 * 1024 * 1024 * (n + 1);
         auto *arr = new std::uint8_t[size]{0};
+
+        std::cout << "Physical memory usage (+" << 5 * (n + 1)
+                  << "MB new byte[]): " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
 
         for (auto i = 0; i < size; i++) {
             arr[i]++;
-        };
-
-        std::cout << "Physical memory usage (+5MB new byte[]): " << Process::getPhysicalMemorySize() / 1024 << "KB"
-                  << std::endl;
+        }
 
         delete[] arr;
+
+        std::this_thread::sleep_for(1s);
+
+        std::cout << "Physical memory usage (-" << 5 * (n + 1)
+                  << "MB new byte[]): " << Process::getPhysicalMemorySize() / 1024 << "KB" << std::endl;
     }
-
-    std::this_thread::sleep_for(5s);
-
-    std::cout << "Physical memory usage (-5MB new byte[]): " << Process::getPhysicalMemorySize() / 1024 << "KB"
-              << std::endl;
 }
