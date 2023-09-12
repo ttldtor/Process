@@ -272,7 +272,7 @@ struct ProcPidRUsageResult {
         mach_timebase_info_data_t timeBase;
 
         StaticData() {
-            timeBase.number = 0;
+            timeBase.numer = 0;
             timeBase.denom = 0;
 
             // Initialize time conversions.
