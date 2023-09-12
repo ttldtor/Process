@@ -268,24 +268,36 @@ struct ProcPidRUsageResult {
     std::chrono::milliseconds userTime{};
     std::chrono::milliseconds totalTime{};
 
-    explicit ProcPidRUsageResult(const rusage_info_v2 &rusage_info_data) {
-        // Initialize time conversions.
-        static mach_timebase_info_data_t time_base;
-        if (time_base.denom == 0) {
-            mach_timebase_info(&time_base);
-        }
+    struct StaticData {
+        mach_timebase_info_data_t timeBase;
 
-        // std::cout << "Time Base: " << time_base.numer << " / " << time_base.denom << std::endl;
+        StaticData() {
+            timeBase.number = 0;
+            timeBase.denom = 0;
+
+            // Initialize time conversions.
+            mach_timebase_info(&timeBase);
+        }
+    };
+
+    static const StaticData staticData;
+
+    explicit ProcPidRUsageResult(const rusage_info_v2 &rusage_info_data) {
+        // std::cout << "Time Base: " << staticData.timeBase.numer << " / " << staticData.timeBase.denom << std::endl;
 
         sysTime = std::chrono::milliseconds(
-            ((static_cast<std::uint64_t>(rusage_info_data.ri_system_time) * time_base.numer) / time_base.denom) /
+            ((static_cast<std::uint64_t>(rusage_info_data.ri_system_time) * staticData.timeBase.numer) /
+             staticData.timeBase.denom) /
             ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
         userTime = std::chrono::milliseconds(
-            ((static_cast<std::uint64_t>(rusage_info_data.ri_user_time) * time_base.numer) / time_base.denom) /
+            ((static_cast<std::uint64_t>(rusage_info_data.ri_user_time) * staticData.timeBase.numer) /
+             staticData.timeBase.denom) /
             ProcPidRUsageResult::NSEC_TO_MSEC_RATIO);
         totalTime = sysTime + userTime;
     }
 };
+
+const ProcPidRUsageResult::StaticData ProcPidRUsageResult::staticData{};
 
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     rusage_info_v2 rusage_info_data{};
@@ -315,11 +327,6 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
     auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
 
     return static_cast<std::uint64_t>(info.resident_size);
-
-    //    proc_taskallinfo info{};
-    //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
-    //
-    //    return static_cast<std::uint64_t>(info.ptinfo.pti_resident_size);
 }
 
 std::uint64_t Process::getPrivateMemorySize() noexcept {
@@ -329,10 +336,6 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
     auto result = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, bit_cast<task_info_t>(&info), &infoCount);
 
     return static_cast<std::uint64_t>(info.virtual_size);
-    //    proc_taskallinfo info{};
-    //    auto result = proc_pidinfo(getpid(), PROC_PIDTASKALLINFO, 0, &info, sizeof(info));
-    //
-    //    return static_cast<std::uint64_t>(info.ptinfo.pti_virtual_size);
 }
 } // namespace process
 } // namespace ttldtor
