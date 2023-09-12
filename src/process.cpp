@@ -344,12 +344,12 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
 // #    include <libprocstat.h>
 // #    include <libutil.h>
+#    include <errno.h>
 #    include <sys/param.h>
 #    include <sys/sysctl.h>
 #    include <sys/types.h>
 #    include <sys/user.h>
 #    include <unistd.h>
-#include <errno.h>
 
 namespace ttldtor {
 namespace process {
@@ -372,7 +372,7 @@ bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     const std::size_t MIB_SIZE = 4; // 6 - OpenBSD
     // MIB - Management Information Base
     int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
-    std::size_t length;
+    std::size_t length = sizeof(kinfo_proc);
 
     if (sysctl(mib, MIB_SIZE, &info, &length, nullptr, 0) < 0) {
         std::cerr << "Error! " << errno << std::endl;
