@@ -369,19 +369,12 @@ struct RUsageResult {
 };
 
 bool getProcInfo(int pid, kinfo_proc &info) noexcept {
-    const std::size_t MIB_SIZE = 6;
+    const std::size_t MIB_SIZE = 4; // 6 - OpenBSD
     // MIB - Management Information Base
-    int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid(), static_cast<int>(sizeof(kinfo_proc)), 0};
+    int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
     std::size_t length;
 
-    if (sysctl(mib, MIB_SIZE, NULL, &length, NULL, 0) < 0) {
-        std::cerr << "Error! " << errno << std::endl;
-        return false;
-    }
-
-    mib[5] = static_cast<int>(length / sizeof(kinfo_proc));
-
-    if (sysctl(mib, MIB_SIZE, &info, &length, NULL, 0) < 0) {
+    if (sysctl(mib, MIB_SIZE, &info, &length, nullptr, 0) < 0) {
         std::cerr << "Error! " << errno << std::endl;
         return false;
     }
