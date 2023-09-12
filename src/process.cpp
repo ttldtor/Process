@@ -127,6 +127,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #elif defined(__linux__)
 
 #    include <sys/resource.h>
+#    include <unistd.h>
 
 namespace ttldtor {
 namespace process {
@@ -347,6 +348,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #    include <sys/sysctl.h>
 #    include <sys/types.h>
 #    include <sys/user.h>
+#    include <unistd.h>
 
 namespace ttldtor {
 namespace process {
@@ -365,7 +367,7 @@ struct RUsageResult {
     }
 };
 
-bool getProcInfo(int pid, kinfo_proc& info) noexcept {
+bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     const std::size_t MIB_SIZE = 6;
     // MIB - Management Information Base
     int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid(), static_cast<int>(sizeof(kinfo_proc)), 0};
