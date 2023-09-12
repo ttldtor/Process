@@ -390,7 +390,7 @@ std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     kinfo_proc info{};
 
     if (getProcInfo(getpid(), info)) {
-        return RUsageResult{info->ki_rusage}.sysTime;
+        return RUsageResult{info.ki_rusage}.sysTime;
     }
 
     return std::chrono::milliseconds(0);
@@ -400,7 +400,7 @@ std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
     kinfo_proc info{};
 
     if (getProcInfo(getpid(), info)) {
-        return RUsageResult{info->ki_rusage}.userTime;
+        return RUsageResult{info.ki_rusage}.userTime;
     }
 
     return std::chrono::milliseconds(0);
@@ -410,7 +410,7 @@ std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
     kinfo_proc info{};
 
     if (getProcInfo(getpid(), info)) {
-        return RUsageResult{info->ki_rusage}.totalTime;
+        return RUsageResult{info.ki_rusage}.totalTime;
     }
 
     return std::chrono::milliseconds(0);
