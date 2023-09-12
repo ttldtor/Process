@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20)
 project(process)
 include(GNUInstallDirs)
 
-set(TTLDTOR_PROCESS "1.1.0" CACHE STRING "The Process package version")
+set(TTLDTOR_PROCESS "1.3.0" CACHE STRING "The Process package version")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
