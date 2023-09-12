@@ -363,5 +363,4 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 }
 }
-}
 #endif
