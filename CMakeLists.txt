@@ -32,6 +32,8 @@ add_library(process::process ALIAS process)
 
 if (WIN32)
     target_link_libraries(process PRIVATE psapi)
+else ()
+    message(STATUS "Platform: " ${CMAKE_SYSTEM_NAME})
 endif ()
 
 if (TTLDTOR_PROCESS_SAMPLES)

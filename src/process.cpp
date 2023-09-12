@@ -340,6 +340,11 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 } // namespace process
 } // namespace ttldtor
 #elif defined(__FreeBSD__)
+
+#    include <libutil.h>
+#    include <sys/types.h>
+#    include <sys/user.h>
+
 namespace ttldtor {
 namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
