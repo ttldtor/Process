@@ -349,6 +349,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #    include <sys/types.h>
 #    include <sys/user.h>
 #    include <unistd.h>
+#include <errno.h>
 
 namespace ttldtor {
 namespace process {
@@ -374,12 +375,14 @@ bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     std::size_t length;
 
     if (sysctl(mib, MIB_SIZE, NULL, &length, NULL, 0) < 0) {
+        std::cerr << "Error! " << errno << std::endl;
         return false;
     }
 
     mib[5] = static_cast<int>(length / sizeof(kinfo_proc));
 
     if (sysctl(mib, MIB_SIZE, &info, &length, NULL, 0) < 0) {
+        std::cerr << "Error! " << errno << std::endl;
         return false;
     }
 
