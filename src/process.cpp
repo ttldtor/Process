@@ -413,11 +413,25 @@ std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
 }
 
 std::uint64_t Process::getWorkingSetSize() noexcept {
-    return 1ULL;
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        std::cout << static_cast<std::uint64_t>(info.ki_rssize) << " * " << getpagesize() << std::endl;
+
+        return static_cast<std::uint64_t>(info.ki_rssize) * getpagesize();
+    }
+    
+    return 0ULL;
 }
 
 std::uint64_t Process::getPrivateMemorySize() noexcept {
-    return 1ULL;
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return static_cast<std::uint64_t>(info.ki_size);
+    }
+
+    return 0ULL;
 }
 } // namespace process
 } // namespace ttldtor
