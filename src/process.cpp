@@ -373,7 +373,6 @@ bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     std::size_t length = sizeof(kinfo_proc);
 
     if (sysctl(mib, MIB_SIZE, &info, &length, nullptr, 0) < 0) {
-        std::cerr << "Error! " << errno << std::endl;
         return false;
     }
 
