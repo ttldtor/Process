@@ -342,8 +342,6 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 } // namespace ttldtor
 #elif defined(__FreeBSD__)
 
-// #    include <libprocstat.h>
-// #    include <libutil.h>
 #    include <errno.h>
 #    include <sys/param.h>
 #    include <sys/sysctl.h>
@@ -416,11 +414,9 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
     kinfo_proc info{};
 
     if (getProcInfo(getpid(), info)) {
-        std::cout << static_cast<std::uint64_t>(info.ki_rssize) << " * " << getpagesize() << std::endl;
-
         return static_cast<std::uint64_t>(info.ki_rssize) * getpagesize();
     }
-    
+
     return 0ULL;
 }
 
