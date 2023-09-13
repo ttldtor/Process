@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20)
 project(process)
 include(GNUInstallDirs)
 
-set(TTLDTOR_PROCESS "1.3.0" CACHE STRING "The Process package version")
+set(TTLDTOR_PROCESS "2.0.0" CACHE STRING "The Process package version")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
@@ -32,6 +32,8 @@ add_library(process::process ALIAS process)
 
 if (WIN32)
     target_link_libraries(process PRIVATE psapi)
+else ()
+    message(STATUS "Platform: " ${CMAKE_SYSTEM_NAME})
 endif ()
 
 if (TTLDTOR_PROCESS_SAMPLES)

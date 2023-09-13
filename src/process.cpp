@@ -127,6 +127,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #elif defined(__linux__)
 
 #    include <sys/resource.h>
+#    include <unistd.h>
 
 namespace ttldtor {
 namespace process {
@@ -339,6 +340,96 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+#elif defined(__FreeBSD__)
+
+#    include <errno.h>
+#    include <sys/param.h>
+#    include <sys/sysctl.h>
+#    include <sys/types.h>
+#    include <sys/user.h>
+#    include <unistd.h>
+
+namespace ttldtor {
+namespace process {
+
+struct RUsageResult {
+    std::chrono::milliseconds sysTime{};
+    std::chrono::milliseconds userTime{};
+    std::chrono::milliseconds totalTime{};
+
+    explicit RUsageResult(const rusage &ru)
+        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
+                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
+          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
+                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
+          totalTime{sysTime + userTime} {
+    }
+};
+
+bool getProcInfo(int pid, kinfo_proc &info) noexcept {
+    const std::size_t MIB_SIZE = 4; // 6 - OpenBSD
+    // MIB - Management Information Base
+    int mib[MIB_SIZE] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
+    std::size_t length = sizeof(kinfo_proc);
+
+    if (sysctl(mib, MIB_SIZE, &info, &length, nullptr, 0) < 0) {
+        return false;
+    }
+
+    return true;
+}
+
+std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info.ki_rusage}.sysTime;
+    }
+
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getUserProcessorTime() noexcept {
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info.ki_rusage}.userTime;
+    }
+
+    return std::chrono::milliseconds(0);
+}
+
+std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return RUsageResult{info.ki_rusage}.totalTime;
+    }
+
+    return std::chrono::milliseconds(0);
+}
+
+std::uint64_t Process::getWorkingSetSize() noexcept {
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return static_cast<std::uint64_t>(info.ki_rssize) * getpagesize();
+    }
+
+    return 0ULL;
+}
+
+std::uint64_t Process::getPrivateMemorySize() noexcept {
+    kinfo_proc info{};
+
+    if (getProcInfo(getpid(), info)) {
+        return static_cast<std::uint64_t>(info.ki_size);
+    }
+
+    return 0ULL;
+}
+} // namespace process
+} // namespace ttldtor
 #else
 namespace ttldtor {
 namespace process {
@@ -361,7 +452,6 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     return 0ULL;
 }
-}
-}
-}
+} // namespace process
+} // namespace ttldtor
 #endif
