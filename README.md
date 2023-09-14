@@ -11,7 +11,7 @@ Cross-platform library for obtaining metrics of the current process
 * [x] Windows
 * [x] Linux
 * [x] MacOS
-* [x] Android
+* [x] Android. [Example](https://github.com/ttldtor/ProcessExample)
 * [x] Termux
 * [x] FreeBSD
 * [ ] OpenBSD
