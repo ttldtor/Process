@@ -11,6 +11,8 @@ Cross-platform library for obtaining metrics of the current process
 * [x] Windows
 * [x] Linux
 * [x] MacOS
+* [x] Android
+* [x] Termux
 * [x] FreeBSD
 * [ ] OpenBSD
 * [ ] AIX

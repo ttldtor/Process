@@ -124,10 +124,9 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__ANDROID__)
 
 #    include <sys/resource.h>
-#    include <unistd.h>
 
 namespace ttldtor {
 namespace process {
