@@ -46,6 +46,32 @@ constexpr To bit_cast(const From &from)
 } // namespace process
 } // namespace ttldtor
 
+#if defined(__linux__) || defined(__ANDROID__) || defined(__FreeBSD__)
+
+#    include <sys/resource.h>
+
+namespace ttldtor {
+namespace process {
+
+struct RUsageResult {
+    std::chrono::milliseconds sysTime{};
+    std::chrono::milliseconds userTime{};
+    std::chrono::milliseconds totalTime{};
+
+    explicit RUsageResult(const rusage &ru)
+        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
+                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
+          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
+                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
+          totalTime{sysTime + userTime} {
+    }
+};
+
+} // namespace process
+} // namespace ttldtor
+
+#endif
+
 #ifdef WIN32
 
 #    include <Windows.h>
@@ -126,8 +152,6 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 } // namespace ttldtor
 #elif defined(__linux__) || defined(__ANDROID__)
 
-#    include <sys/resource.h>
-
 namespace ttldtor {
 namespace process {
 
@@ -157,20 +181,6 @@ struct Parser {
         } else {
             return {KEY_NOT_FOUND, 0};
         }
-    }
-};
-
-struct RUsageResult {
-    std::chrono::milliseconds sysTime{};
-    std::chrono::milliseconds userTime{};
-    std::chrono::milliseconds totalTime{};
-
-    explicit RUsageResult(const rusage &ru)
-        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
-                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
-          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
-                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
-          totalTime{sysTime + userTime} {
     }
 };
 
@@ -350,20 +360,6 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
 namespace ttldtor {
 namespace process {
-
-struct RUsageResult {
-    std::chrono::milliseconds sysTime{};
-    std::chrono::milliseconds userTime{};
-    std::chrono::milliseconds totalTime{};
-
-    explicit RUsageResult(const rusage &ru)
-        : sysTime{static_cast<std::uint64_t>(ru.ru_stime.tv_sec) * 1000ULL +
-                  static_cast<std::uint64_t>(ru.ru_stime.tv_usec) / 1000ULL},
-          userTime{static_cast<std::uint64_t>(ru.ru_utime.tv_sec) * 1000ULL +
-                   static_cast<std::uint64_t>(ru.ru_utime.tv_usec) / 1000ULL},
-          totalTime{sysTime + userTime} {
-    }
-};
 
 bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     const std::size_t MIB_SIZE = 4; // 6 - OpenBSD
