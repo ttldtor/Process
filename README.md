@@ -52,7 +52,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE process::process)
 #include <vector>
 
 using namespace std::literals;
-using namespace ttldtor::process;
+using namespace org::ttldtor::process;
 
 int main() {
     auto now = [] {

@@ -3,10 +3,6 @@
 
 #pragma once
 
-#ifdef _WINNT_
-#    error Please, include windows.h or winnt.h after dxFeed Graal CXX API headers
-#endif
-
 #ifdef TTLDTOR_PROCESS_EXPORT
 #    error TTLDTOR_PROCESS_EXPORT was previously defined
 #endif
@@ -34,8 +30,10 @@
 #include <chrono>
 #include <cstdint>
 
+namespace org {
 namespace ttldtor {
 namespace process {
+
 struct TTLDTOR_PROCESS_EXPORT Process {
 
     /**
@@ -112,3 +110,4 @@ struct TTLDTOR_PROCESS_EXPORT Process {
 
 } // namespace process
 } // namespace ttldtor
+} // namespace org

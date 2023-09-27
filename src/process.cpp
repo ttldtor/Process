@@ -7,10 +7,10 @@
 #include <chrono>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <type_traits>
 
+namespace org {
 namespace ttldtor {
 namespace process {
 
@@ -45,11 +45,13 @@ constexpr To bit_cast(const From &from)
 
 } // namespace process
 } // namespace ttldtor
+} // namespace org
 
 #if defined(__linux__) || defined(__ANDROID__) || defined(__FreeBSD__)
 
 #    include <sys/resource.h>
 
+namespace org {
 namespace ttldtor {
 namespace process {
 
@@ -69,6 +71,7 @@ struct RUsageResult {
 
 } // namespace process
 } // namespace ttldtor
+} // namespace org
 
 #endif
 
@@ -78,6 +81,7 @@ struct RUsageResult {
 #    include <processthreadsapi.h>
 #    include <psapi.h>
 
+namespace org {
 namespace ttldtor {
 namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
@@ -150,8 +154,11 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+} // namespace org
+
 #elif defined(__linux__) || defined(__ANDROID__)
 
+namespace org {
 namespace ttldtor {
 namespace process {
 
@@ -253,6 +260,8 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+} // namespace org
+
 #elif defined(__APPLE__) && defined(__MACH__)
 #    include <unistd.h>
 #    if __has_include(<libproc.h>)
@@ -268,6 +277,7 @@ int proc_pid_rusage(int pid, int flavor, rusage_info_t *buffer) __OSX_AVAILABLE_
 #    include <mach/mach_time.h>
 #    include <sys/sysctl.h>
 
+namespace org {
 namespace ttldtor {
 namespace process {
 
@@ -349,6 +359,8 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+} // namespace org
+
 #elif defined(__FreeBSD__)
 
 #    include <errno.h>
@@ -358,6 +370,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #    include <sys/user.h>
 #    include <unistd.h>
 
+namespace org {
 namespace ttldtor {
 namespace process {
 
@@ -425,7 +438,11 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+} // namespace org
+
 #else
+
+namespace org {
 namespace ttldtor {
 namespace process {
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
@@ -449,4 +466,6 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 }
 } // namespace process
 } // namespace ttldtor
+} // namespace org
+
 #endif
