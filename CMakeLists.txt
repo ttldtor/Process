@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20)
 project(process)
 include(GNUInstallDirs)
 
-set(TTLDTOR_PROCESS "v3.0.0" CACHE STRING "The Process package version")
+set(TTLDTOR_PROCESS "v3.0.1" CACHE STRING "The Process package version")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
@@ -25,10 +25,10 @@ endif ()
 
 option(TTLDTOR_PROCESS_SAMPLES "Enable building samples for Process" ${TTLDTOR_PROCESS_ROOT_PROJECT})
 
-add_library(process src/process.cpp)
-target_include_directories(process PUBLIC include)
+add_library(${PROJECT_NAME} src/process.cpp)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-add_library(process::process ALIAS process)
+add_library(process::process ALIAS ${PROJECT_NAME})
 
 if (WIN32)
     target_link_libraries(process PRIVATE psapi)
@@ -37,6 +37,6 @@ else ()
 endif ()
 
 if (TTLDTOR_PROCESS_SAMPLES)
-    add_executable(process_test test/main.cpp)
-    target_link_libraries(process_test process)
+    add_executable(${PROJECT_NAME}_test test/main.cpp)
+    target_link_libraries(${PROJECT_NAME}_test process)
 endif ()
