@@ -15,6 +15,8 @@ Cross-platform library of utilities for obtaining metrics of the current process
 * [x] Termux
 * [x] FreeBSD
 * [ ] OpenBSD
+* [ ] NetBSD
+* [ ] Solaris
 * [ ] AIX
 * [ ] ...
 
