@@ -82,7 +82,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Select Xcode version
-        if: ${{ contains(matrix.config.os, 'macos') }}
+        if: ${{ contains(matrix.config.os, 'mac') }}
         run: sudo xcode-select -s '/Applications/Xcode_${{matrix.config.xcode}}.app/Contents/Developer'
 
       - name: Prepare build
@@ -116,13 +116,12 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.buildType}} --parallel ${{matrix.config.cores}}
 
       - name: Test (!Win)
-        if: ${{ !contains(matrix.os, 'windows') }}
+        if: ${{ !contains(matrix.config.os, 'win') }}
         working-directory: ${{github.workspace}}/build
         run: ./process_test
 
       - name: Test (Win)
-        if: ${{ contains(matrix.os, 'windows') }}
-        working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+        if: ${{ contains(matrix.config.os, 'win') }}
+        working-directory: ${{github.workspace}}/build/${{matrix.buildType}}
         run: >
-          ls
           ./process_test
