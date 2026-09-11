@@ -123,4 +123,6 @@ jobs:
       - name: Test (Win)
         if: ${{ contains(matrix.os, 'windows') }}
         working-directory: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
-        run: ./process_test
+        run: >
+          ls
+          ./process_test
