@@ -7,9 +7,8 @@
 #include <limits>
 #include <string>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
+
 namespace detail {
 
 enum class ParseStatus { KEY_NOT_FOUND, VALUE_NOT_FOUND, INVALID_VALUE, INVALID_UNIT, OUT_OF_RANGE, OK };
@@ -82,6 +81,5 @@ inline ParseStatusResult parseLinuxStatusLine(const std::string &line, const std
 }
 
 } // namespace detail
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE

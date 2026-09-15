@@ -1,4 +1,4 @@
-// Copyright (c) 2023 ttldtor.
+// Copyright (c) 2026 ttldtor.
 // SPDX-License-Identifier: BSL-1.0
 
 #include <process/process.hpp>
@@ -10,9 +10,7 @@
 #include <string>
 #include <type_traits>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 template <typename... T> constexpr void ignore_unused(const T &...) {
 }
@@ -43,17 +41,13 @@ constexpr To bit_cast(const From &from)
     return to;
 }
 
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #if defined(__linux__) || defined(__ANDROID__) || defined(__FreeBSD__)
 
 #    include <sys/resource.h>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 struct RUsageResult {
     std::chrono::milliseconds sysTime{};
@@ -69,9 +63,7 @@ struct RUsageResult {
     }
 };
 
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #endif
 
@@ -81,9 +73,8 @@ struct RUsageResult {
 #    include <processthreadsapi.h>
 #    include <psapi.h>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
+
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     FILETIME creationTime{};
     FILETIME exitTime{};
@@ -152,17 +143,14 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return static_cast<std::uint64_t>(processMemoryCountersEx.PrivateUsage);
 }
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #elif defined(__linux__) || defined(__ANDROID__)
 
 #    include "LinuxStatusParser.hpp"
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     rusage ru{};
@@ -239,9 +227,8 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return 0;
 }
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #elif defined(__APPLE__) && defined(__MACH__)
 #    include <unistd.h>
@@ -258,9 +245,7 @@ int proc_pid_rusage(int pid, int flavor, rusage_info_t *buffer) __OSX_AVAILABLE_
 #    include <mach/mach_time.h>
 #    include <sys/sysctl.h>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 struct ProcPidRUsageResult {
     static const std::uint64_t NSEC_TO_MSEC_RATIO = 1000000ULL;
@@ -338,9 +323,8 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return static_cast<std::uint64_t>(info.virtual_size);
 }
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #elif defined(__FreeBSD__)
 
@@ -351,9 +335,7 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 #    include <sys/user.h>
 #    include <unistd.h>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 bool getProcInfo(int pid, kinfo_proc &info) noexcept {
     const std::size_t MIB_SIZE = 4; // 6 - OpenBSD
@@ -417,15 +399,13 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
     return 0ULL;
 }
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #else
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
+
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     return std::chrono::milliseconds(0);
 }
@@ -445,8 +425,7 @@ std::uint64_t Process::getWorkingSetSize() noexcept {
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     return 0ULL;
 }
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+
+TTLDTOR_PROCESS_END_NAMESPACE
 
 #endif

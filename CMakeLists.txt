@@ -1,4 +1,4 @@
-# Copyright (c) 2023 ttldtor.
+# Copyright (c) 2026 ttldtor.
 # SPDX-License-Identifier: BSL-1.0
 
 cmake_minimum_required(VERSION 3.20)
@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20)
 project(process)
 include(GNUInstallDirs)
 
-set(TTLDTOR_PROCESS "v3.0.1" CACHE STRING "The Process package version")
+set(TTLDTOR_PROCESS "v3.0.2" CACHE STRING "The Process package version")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)

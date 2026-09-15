@@ -1,4 +1,4 @@
-// Copyright (c) 2023 ttldtor.
+// Copyright (c) 2026 ttldtor.
 // SPDX-License-Identifier: BSL-1.0
 
 #pragma once
@@ -27,12 +27,23 @@
 #    define TTLDTOR_PROCESS_EXPORT_TEMPLATE_DEFINE
 #endif
 
+#ifndef TTLDTOR_PROCESS_BEGIN_NAMESPACE
+#    define TTLDTOR_PROCESS_BEGIN_NAMESPACE                                                                            \
+        namespace org {                                                                                                \
+        namespace ttldtor {                                                                                            \
+        namespace process {                                                                                            \
+        inline namespace v3 {
+#    define TTLDTOR_PROCESS_END_NAMESPACE                                                                              \
+        }                                                                                                              \
+        }                                                                                                              \
+        }                                                                                                              \
+        }
+#endif
+
 #include <chrono>
 #include <cstdint>
 
-namespace org {
-namespace ttldtor {
-namespace process {
+TTLDTOR_PROCESS_BEGIN_NAMESPACE
 
 struct TTLDTOR_PROCESS_EXPORT Process {
 
@@ -108,6 +119,4 @@ struct TTLDTOR_PROCESS_EXPORT Process {
     }
 };
 
-} // namespace process
-} // namespace ttldtor
-} // namespace org
+TTLDTOR_PROCESS_END_NAMESPACE
