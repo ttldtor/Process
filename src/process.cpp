@@ -75,7 +75,7 @@ struct RUsageResult {
 
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #    include <Windows.h>
 #    include <processthreadsapi.h>
@@ -158,38 +158,11 @@ std::uint64_t Process::getPrivateMemorySize() noexcept {
 
 #elif defined(__linux__) || defined(__ANDROID__)
 
+#    include "LinuxStatusParser.hpp"
+
 namespace org {
 namespace ttldtor {
 namespace process {
-
-struct Parser {
-    enum ParseResultType { KEY_NOT_FOUND, VALUE_NOT_FOUND, OK };
-
-    struct ParseStatusResult {
-        ParseResultType resultType;
-        std::uint64_t value;
-    };
-
-    static ParseStatusResult parseStatus(const std::string &s, const std::string &key) noexcept {
-        auto foundKeyPos = s.find(key);
-
-        if (foundKeyPos != std::string::npos) {
-            auto foundValuePos = s.find_first_of("0123456789", foundKeyPos + 6);
-
-            if (foundValuePos != std::string::npos) {
-                try {
-                    return {OK, static_cast<std::uint64_t>(std::stoll(s.substr(foundValuePos)))};
-                } catch (...) {
-                    return {OK, 0};
-                }
-            } else {
-                return {VALUE_NOT_FOUND, 0};
-            }
-        } else {
-            return {KEY_NOT_FOUND, 0};
-        }
-    }
-};
 
 std::chrono::milliseconds Process::getKernelProcessorTime() noexcept {
     rusage ru{};
@@ -218,45 +191,53 @@ std::chrono::milliseconds Process::getTotalProcessorTime() noexcept {
 std::uint64_t Process::getWorkingSetSize() noexcept {
     std::ifstream is("/proc/self/status");
 
-    if (is.fail()) {
-        return 0ULL;
+    if (!is) {
+        return 0;
     }
 
-    std::string s{};
+    std::string line;
 
-    while (!std::getline(is, s).fail()) {
-        auto result = Parser::parseStatus(s, "VmRSS:");
+    while (std::getline(is, line)) {
+        const auto result = detail::parseLinuxStatusLine(line, "VmRSS:");
 
-        if (result.resultType == Parser::KEY_NOT_FOUND) {
+        if (result.status == detail::ParseStatus::KEY_NOT_FOUND) {
             continue;
-        } else {
-            return result.value * 1024;
         }
+
+        if (result.status == detail::ParseStatus::OK) {
+            return result.value;
+        }
+
+        return 0;
     }
 
-    return 0LL;
+    return 0;
 }
 
 std::uint64_t Process::getPrivateMemorySize() noexcept {
     std::ifstream is("/proc/self/status");
 
-    if (is.fail()) {
-        return 0ULL;
+    if (!is) {
+        return 0;
     }
 
-    std::string s{};
+    std::string line;
 
-    while (!std::getline(is, s).fail()) {
-        auto result = Parser::parseStatus(s, "VmSize:");
+    while (std::getline(is, line)) {
+        const auto result = detail::parseLinuxStatusLine(line, "VmSize:");
 
-        if (result.resultType == Parser::KEY_NOT_FOUND) {
+        if (result.status == detail::ParseStatus::KEY_NOT_FOUND) {
             continue;
-        } else {
-            return result.value * 1024;
         }
+
+        if (result.status == detail::ParseStatus::OK) {
+            return result.value;
+        }
+
+        return 0;
     }
 
-    return 0LL;
+    return 0;
 }
 } // namespace process
 } // namespace ttldtor
