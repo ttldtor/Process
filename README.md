@@ -23,10 +23,11 @@ Cross-platform library of utilities for obtaining metrics of the current process
 ### Example:
 
 _**CMakeLists.txt:**_
+
 ```cmake
 cmake_minimum_required(VERSION 3.20)
 
-project(Test LANGUAGES CXX)
+project(Sample LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)

@@ -115,13 +115,5 @@ jobs:
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.buildType}} --parallel ${{matrix.config.cores}}
 
-      - name: Test (!Win)
-        if: ${{ !contains(matrix.config.os, 'win') }}
-        working-directory: ${{github.workspace}}/build
-        run: ./process_test
-
-      - name: Test (Win)
-        if: ${{ contains(matrix.config.os, 'win') }}
-        working-directory: ${{github.workspace}}/build/${{matrix.buildType}}
-        run: >
-          ./process_test
+      - name: Test
+        run: ctest --test-dir ${{github.workspace}}/build --build-config ${{matrix.buildType}} --output-on-failure
